@@ -48,7 +48,7 @@ class Simba_Two_Factor_Authentication {
 
 		// This is needed for the login form on the dedicated payment page (e.g. /checkout/order-pay/123456/?pay_for_order=true&key=wc_order_blahblahblah)
 		add_action('woocommerce_login_form_start', array($this, 'woocommerce_before_customer_login_form'));
-		
+
 		add_action('woocommerce_before_customer_login_form', array($this, 'woocommerce_before_customer_login_form'));
 		// The login form on the checkout doesn't call the woocommerce_before_customer_login_form action
 		add_action('woocommerce_before_checkout_form', array($this, 'woocommerce_before_customer_login_form'));
@@ -57,20 +57,20 @@ class Simba_Two_Factor_Authentication {
 		if (!defined('TWO_FACTOR_DISABLE') || !TWO_FACTOR_DISABLE) {
 			add_action('affwp_process_login_form', array($this, 'affwp_process_login_form'));
 		}
-		
+
 		add_filter('tml_display', array($this, 'tml_display'));
-		
+
 		add_filter('do_shortcode_tag', array($this, 'do_shortcode_tag'), 10, 2);
-		
+
 		if (is_admin()) {
 			//Save settings
 			add_action('admin_init', array($this, 'check_possible_reset'));
-			
+
 			//Add to Settings menu on sites
 			add_action('admin_menu', array($this, 'menu_entry_for_admin'));
 
 			//Add settings link in plugin list
-			$plugin = plugin_basename(__FILE__); 
+			$plugin = plugin_basename(__FILE__);
 			add_filter("plugin_action_links_".$plugin, array($this, 'addPluginSettingsLink' ));
 			add_filter('network_admin_plugin_action_links_'.$plugin, array($this, 'addPluginSettingsLink' ));
 
@@ -94,15 +94,15 @@ class Simba_Two_Factor_Authentication {
 
 		// Show off-sync message for hotp
 		add_action('admin_notices', array($this, 'tfaShowHOTPOffSyncMessage'));
-		
+
 		// We want to run first if possible, so that we're not aborted by JavaScript exceptions in other components (our code is critical to the login process for TFA users)
-		// Unfortunately, though, people start enqueuing from init onwards (before that is buggy - https://core.trac.wordpress.org/ticket/11526), so, we try to detect the login page and go earlier there. 
+		// Unfortunately, though, people start enqueuing from init onwards (before that is buggy - https://core.trac.wordpress.org/ticket/11526), so, we try to detect the login page and go earlier there.
 		if (isset($GLOBALS['pagenow']) && 'wp-login.php' === $GLOBALS['pagenow']) {
 			add_action('init', array($this, 'login_enqueue_scripts'), -99999999999);
 		} else {
 			add_action('login_enqueue_scripts', array($this, 'login_enqueue_scripts'), -99999999999);
 		}
-		
+
 		if (!defined('TWO_FACTOR_DISABLE') || !TWO_FACTOR_DISABLE) {
 			add_filter('authenticate', array($this, 'tfaVerifyCodeAndUser'), 99999999999, 3);
 		}
@@ -128,7 +128,7 @@ class Simba_Two_Factor_Authentication {
 	public function get_management_capability() {
 		return apply_filters('simba_tfa_management_capability', 'manage_options');
 	}
-	
+
 	// Ultimate Membership Pro support
 	public function do_shortcode_tag($output, $tag) {
 		if ('ihc-login-form' == $tag) $this->login_enqueue_scripts();
@@ -204,9 +204,9 @@ class Simba_Two_Factor_Authentication {
 		if (!class_exists('HOTP')) require_once(SIMBA_TFA_PLUGIN_DIR.'/hotp-php-master/hotp.php');
 		if (!class_exists('Base32')) require_once(SIMBA_TFA_PLUGIN_DIR.'/Base32/Base32.php');
 		if (!class_exists('Simba_TFA')) require_once(SIMBA_TFA_PLUGIN_DIR.'/includes/class-simba-tfa.php');
-		
+
 		$tfa = new Simba_TFA(new Base32(), new HOTP());
-		
+
 		return $tfa;
 	}
 
@@ -227,11 +227,11 @@ class Simba_Two_Factor_Authentication {
 
 			echo json_encode(array('code' => $this->getTFA()->generateOTP($current_user->ID, $tfa_priv_key_64)));
 		} elseif ('untrust_device' == $_POST['subaction'] && isset($_POST['device_id'])) {
-		
+
 			do_action('simba_tfa_untrust_device', $_POST['device_id']);
-		
+
 		}
-		
+
 		exit;
 
 	}
@@ -246,15 +246,15 @@ class Simba_Two_Factor_Authentication {
 		if (empty($_POST['user'])) die('Security check (2).');
 
 		$tfa = $this->getTFA();
-		
+
 		if (defined('TWO_FACTOR_DISABLE') && TWO_FACTOR_DISABLE) {
 			$res = array('result' => false, 'user_can_trust' => false);
 		} else {
-		
+
 			$auth_info = array('log' => (string)$_POST['user']);
-		
+
 			if (!empty($_COOKIE['simbatfa_trust_token'])) $auth_info['trust_token'] = (string) $_COOKIE['simbatfa_trust_token'];
-		
+
 			$res = $tfa->preAuth($auth_info, 'array');
 		}
 
@@ -262,7 +262,7 @@ class Simba_Two_Factor_Authentication {
 			'jsonstarter' => 'justhere',
 			'status' => $res['result'],
 		);
-		
+
 		if (!empty($res['user_can_trust'])) {
 			$results['user_can_trust'] = 1;
 			if (!empty($res['user_already_trusted'])) $results['user_already_trusted'] = 1;
@@ -279,12 +279,12 @@ class Simba_Two_Factor_Authentication {
 		}
 
 		$results = apply_filters('simbatfa_check_tfa_requirements_ajax_response', $results);
-		
+
 		echo json_encode($results);
-		
+
 		exit;
 	}
-	
+
 	/**
 	 * Here's where the login action happens. Called on the WP 'authenticate' action.
 	 *
@@ -304,13 +304,13 @@ class Simba_Two_Factor_Authentication {
 			// This forces a new password authentication below
 			$user = false;
 		}
-	
+
 		if (is_wp_error($user)) {
 			$ret = $user;
 		} else {
 
 			$tfa = $this->getTFA();
-			
+
 			if (is_object($user) && isset($user->ID) && isset($user->user_login)) {
 				$params['log'] = $user->user_login;
 				// Confirm that this is definitely a username regardless of its format
@@ -319,7 +319,7 @@ class Simba_Two_Factor_Authentication {
 				$params['log'] = $username;
 				$may_be_email = true;
 			}
-			
+
 			$params['caller'] = $_SERVER['PHP_SELF'] ? $_SERVER['PHP_SELF'] : $_SERVER['REQUEST_URI'];
 			if (!empty($_COOKIE['simbatfa_trust_token'])) $params['trust_token'] = (string) $_COOKIE['simbatfa_trust_token'];
 
@@ -328,7 +328,7 @@ class Simba_Two_Factor_Authentication {
 				$speculatively_try_appendage = true;
 				$params['two_factor_code'] = $from_password['tfa_code'];
 			}
-			
+
 			$code_ok = $tfa->authUserFromLogin($params, $may_be_email);
 
 			if (is_wp_error($code_ok)) {
@@ -338,51 +338,51 @@ class Simba_Two_Factor_Authentication {
 			} elseif ($user) {
 				$ret = $user;
 			} else {
-			
+
 				if (!empty($speculatively_try_appendage) && true === $code_ok) {
 					$password = $from_password['password'];
 				}
-			
+
 				$ret = wp_authenticate_username_password(null, $username, $password);
 			}
-			
+
 		}
-		
+
 		$ret = apply_filters('simbatfa_verify_code_and_user_result', $ret, $original_user, $username, $password);
 
 		// If the TFA code was actually validated (not just not required, for example), then $code_ok is (boolean)true
 		if (isset($code_ok) && true === $code_ok && is_a($ret, 'WP_User')) {
 			if (!empty($params['simba_tfa_mark_as_trusted']) && $tfa->user_can_trust($ret->ID) && (is_ssl() || (!empty($_SERVER['SERVER_NAME']) && ('localhost' == $_SERVER['SERVER_NAME'] ||'127.0.0.1' == $_SERVER['SERVER_NAME'])))) {
-		
+
 				$trusted_for = $this->get_option('tfa_trusted_for');
 				$trusted_for = (false === $trusted_for) ? 30 : (string) absint($trusted_for);
-			
+
 				$tfa->trust_device($ret->ID, $trusted_for);
 			}
 		}
-		
+
 		return $ret;
 	}
-	
+
 	/**
 	 * Runs upon the WP action admin_init
 	 */
 	public function register_two_factor_auth_settings() {
 		global $wp_roles;
 		if (!isset($wp_roles)) $wp_roles = new WP_Roles();
-		
+
 		foreach($wp_roles->role_names as $id => $name) {
 			register_setting('tfa_user_roles_group', 'tfa_'.$id);
 			register_setting('tfa_user_roles_trusted_group', 'tfa_trusted_'.$id);
 			register_setting('tfa_user_roles_required_group', 'tfa_required_'.$id);
 		}
-		
+
 		if (is_multisite()) {
 			register_setting('tfa_user_roles_group', 'tfa__super_admin');
 			register_setting('tfa_user_roles_trusted_group', 'tfa_trusted__super_admin');
 			register_setting('tfa_user_roles_required_group', 'tfa_required__super_admin');
 		}
-		
+
 		register_setting('tfa_user_roles_required_group', 'tfa_requireafter');
 		register_setting('tfa_user_roles_trusted_group', 'tfa_trusted_for');
 		register_setting('simba_tfa_default_hmac_group', 'tfa_default_hmac');
@@ -394,13 +394,13 @@ class Simba_Two_Factor_Authentication {
 	 *
 	 * @param Integer $user_id	  - the WordPress user ID
 	 * @param Boolean $long_label - whether to use a long label rather than a short one
-	 */ 
+	 */
 	public function tfaListEnableRadios($user_id, $long_label = false) {
 		if (!$user_id) return;
-			
+
 		$setting = get_user_meta($user_id, 'tfa_enable_tfa', true);
 		$setting = !$setting ? false : $setting;
-		
+
 		$tfa = $this->getTFA();
 
 		if ($tfa->isRequiredForUser($user_id)) {
@@ -410,22 +410,22 @@ class Simba_Two_Factor_Authentication {
 		}
 
 		$tfa_enabled_label = $long_label ? __('Enable two-factor authentication', 'two-factor-authentication') : __('Enabled', 'two-factor-authentication');
-		
+
 		$tfa_enabled_label .= ' '.sprintf(__('(Current code: %s)', 'two-factor-authentication'), $this->current_otp_code($tfa, $user_id));
-		
+
 		$tfa_disabled_label = $long_label ? __('Disable two-factor authentication', 'two-factor-authentication') : __('Disabled', 'two-factor-authentication');
 
 		echo '<input type="radio" class="tfa_enable_radio" id="tfa_enable_tfa_true" name="tfa_enable_tfa" value="true" '.(true == $setting ? 'checked="checked"' :'').'> <label class="tfa_enable_radio_label" for="tfa_enable_tfa_true">'.apply_filters('simbatfa_radiolabel_enabled', $tfa_enabled_label, $long_label).'</label> <br>';
 
 		echo '<input type="radio" class="tfa_enable_radio" id="tfa_enable_tfa_false" name="tfa_enable_tfa" value="false" '.(false == $setting ? 'checked="checked"' :'').'> <label class="tfa_enable_radio_label" for="tfa_enable_tfa_false">'.apply_filters('simbatfa_radiolabel_disabled', $tfa_disabled_label, $long_label).'</label> <br>';
 	}
-		
+
 
 	public function tfaListAlgorithmRadios($user_id) {
 		if (!$user_id) return;
-				
-		$types = array('totp' => __('TOTP (time based - most common algorithm; used by Google Authenticator)', 'two-factor-authentication'), 'hotp' => __('HOTP (event based)', 'two-factor-authentication')); 
-		
+
+		$types = array('totp' => __('TOTP (time based - most common algorithm; used by Google Authenticator)', 'two-factor-authentication'), 'hotp' => __('HOTP (event based)', 'two-factor-authentication'));
+
 		$setting = get_user_meta($user_id, 'tfa_algorithm_type', true);
 		$setting = $setting === false || !$setting ? 'totp' : $setting;
 
@@ -455,29 +455,29 @@ class Simba_Two_Factor_Authentication {
 			$name = __('Multisite Super Admin', 'two-factor-authentication');
 			$setting = $this->get_option('tfa_'.$prefix.$id);
 			$setting = $setting === false || $setting ? 1 : 0;
-			
+
 			echo '<input type="checkbox" id="tfa_'.$prefix.$id.'" name="tfa_'.$prefix.$id.'" value="1" '.($setting ? 'checked="checked"' :'').'> <label for="tfa_'.$prefix.$id.'">'.htmlspecialchars($name)."</label><br>\n";
 		}
 
 		global $wp_roles;
 		if (!isset($wp_roles)) $wp_roles = new WP_Roles();
-		
+
 		foreach($wp_roles->role_names as $id => $name) {
 			$setting = $this->get_option('tfa_'.$prefix.$id);
 			$setting = $setting === false || $setting ? 1 : 0;
-			
+
 			echo '<input type="checkbox" id="tfa_'.$prefix.$id.'" name="tfa_'.$prefix.$id.'" value="1" '.($setting ? 'checked="checked"' :'').'> <label for="tfa_'.$prefix.$id.'">'.htmlspecialchars($name)."</label><br>\n";
 		}
-		
+
 	}
 
 	public function tfaListDefaultHMACRadios() {
 		$tfa = $this->getTFA();
 		$setting = $this->get_option('tfa_default_hmac');
 		$setting = $setting === false || !$setting ? $tfa->default_hmac : $setting;
-		
+
 		$types = array('totp' => __('TOTP (time based - most common algorithm; used by Google Authenticator)', 'two-factor-authentication'), 'hotp' => __('HOTP (event based)', 'two-factor-authentication'));
-		
+
 		foreach($types as $id => $name)
 			print '<input type="radio" id="tfa_default_hmac_'.esc_attr($id).'" name="tfa_default_hmac" value="'.$id.'" '.($setting == $id ? 'checked="checked"' :'').'> '.'<label for="tfa_default_hmac_'.esc_attr($id).'">'."$name</label><br>\n";
 	}
@@ -486,12 +486,12 @@ class Simba_Two_Factor_Authentication {
 		$tfa = $this->getTFA();
 		$setting = $this->get_option('tfa_xmlrpc_on');
 		$setting = $setting === false || !$setting ? 0 : 1;
-		
+
 		$types = array(
 			'0' => __('Do not require 2FA over XMLRPC (best option if you must use XMLRPC and your client does not support 2FA)', 'two-factor-authentication'),
 			'1' => __('Do require 2FA over XMLRPC (best option if you do not use XMLRPC or are unsure)', 'two-factor-authentication')
 		);
-		
+
 		foreach($types as $id => $name)
 			print '<input type="radio" name="tfa_xmlrpc_on" id="tfa_xmlrpc_on_'.$id.'" value="'.$id.'" '.($setting == $id ? 'checked="checked"' :'').'> <label for="tfa_xmlrpc_on_'.$id.'">'.$name."</label><br>\n";
 	}
@@ -518,9 +518,9 @@ class Simba_Two_Factor_Authentication {
 	 */
 	public function admin_menu()  {
 		$tfa = $this->getTFA();
-		
+
 		$tfa->potentially_port_private_keys();
-		
+
 		global $current_user;
 		if(!$tfa->isActivatedForUser($current_user->ID)) return;
 		add_menu_page(__('Two Factor Authentication', 'two-factor-authentication'), __('Two Factor Auth', 'two-factor-authentication'), 'read', 'two-factor-auth-user', array($this, 'show_user_settings_page'), SIMBA_TFA_PLUGIN_URL.'/img/tfa_admin_icon_16x16.png', 72);
@@ -568,21 +568,21 @@ class Simba_Two_Factor_Authentication {
 // 			if (empty($_REQUEST['noredirect'])) exit;
 			exit;
 		}
-		
+
 	}
 
 	public function reset_private_key_and_emergency_codes($user_id = false, $redirect = null) {
-	
+
 		if (!$user_id) {
 			global $current_user;
 			$user_id = $current_user->ID;
 		}
-		
+
 		delete_user_meta($user_id, 'tfa_priv_key_64');
 		delete_user_meta($user_id, 'simba_tfa_emergency_codes_64');
-		
+
 		if (false === $redirect) return;
-		
+
 		if (empty($_REQUEST['noredirect'])) {
 			wp_safe_redirect( admin_url('admin.php').'?page=two-factor-auth-user&settings-updated=1');
 		} else {
@@ -621,16 +621,16 @@ class Simba_Two_Factor_Authentication {
 		?>
 		<script>
 			jQuery(document).ready(function($) {
-			
+
 				// Render any QR codes
 				$('.simbaotp_qr_container').qrcode({
 					'render': 'image',
 					'text': $('.simbaotp_qr_container:first').data('qrcode'),
 				});
-				
+
 				function update_otp_code() {
 					$('.simba_current_otp').html('<em><?php echo esc_attr(__('Updating...', 'two-factor-authentication'));?></em>');
-					
+
 					$.post('<?php echo esc_js($ajax_url);?>', {
 						action: 'simbatfa_shared_ajax',
 						subaction: 'refreshotp',
@@ -678,9 +678,9 @@ class Simba_Two_Factor_Authentication {
 						<?php } ?>
 					});
 				}
-				
+
 				var min_refresh_after = 30;
-				
+
 				if (0 == $('body.settings_page_two-factor-auth').length) {
 					$('.simba_current_otp').each(function(ind, obj) {
 						var refresh_after = $(obj).data('refresh_after');
@@ -688,20 +688,20 @@ class Simba_Two_Factor_Authentication {
 							min_refresh_after = refresh_after;
 						}
 					});
-				
+
 					// Update after the given seconds, and then every 30 seconds
 					setTimeout(function() {
 						setInterval(update_otp_code, 30000)
 						update_otp_code();
 					}, min_refresh_after * 1000);
 				}
-					
+
 				// Handle clicks on the 'refresh' link
 				$('.simbaotp_refresh').click(function(e) {
 					e.preventDefault();
 					update_otp_code();
 				});
-				
+
 				$('#tfa_trusted_devices_box').on('click', '.simbatfa-trust-remove', function(e) {
 					e.preventDefault();
 					var device_id = $(this).data('trusted-device-id');
@@ -796,9 +796,9 @@ class Simba_Two_Factor_Authentication {
 		$this->add_footer($admin);
 
 		$url = preg_replace('/^https?:\/\//', '', site_url());
-		
+
 		$tfa_priv_key_64 = get_user_meta($user_id, 'tfa_priv_key_64', true);
-		
+
 		if (!$tfa_priv_key_64) $tfa_priv_key_64 = $tfa->addPrivateKey($user_id);
 
 		$tfa_priv_key = trim($tfa->getPrivateKeyPlain($tfa_priv_key_64, $user_id), "\x00..\x1F");
@@ -842,9 +842,9 @@ class Simba_Two_Factor_Authentication {
 					<?php
 					$time_now = time();
 					$refresh_after = 30 - ($time_now % 30);
-					
+
 					?><span class="simba_current_otp" data-refresh_after="<?php echo $refresh_after; ?>"><?php print $tfa->generateOTP($user_id, $tfa_priv_key_64); ?></span>
-			
+
 					</p>
 				</div>
 
@@ -864,13 +864,13 @@ class Simba_Two_Factor_Authentication {
 						echo ' ';
 						_e('Otherwise, you can type the textual private key (shown below) into your app. Always keep private keys secret.', 'two-factor-authentication');
 					?>
-					
+
 					<?php printf(__('You are currently using %s, %s', 'two-factor-authentication'),  strtoupper($algorithm_type), ($algorithm_type == 'totp') ? __('a time based algorithm', 'two-factor-authentication') : __('an event based algorithm', 'two-factor-authentication')); ?>.
 					</p>
 <!-- 					<p title="<?php echo sprintf(__("Private key: %s (base 32: %s)", 'two-factor-authentication'), $tfa_priv_key, $tfa_priv_key_32);?>"> -->
 					<?php $qr_url = $this->tfa_qr_code_url($algorithm_type, $url, $tfa_priv_key, $user_id) ?>
 					<div style="float: left; padding-right: 20px;" class="simbaotp_qr_container" data-qrcode="<?php echo esc_attr($qr_url); ?>"></div>
-					
+
 <!-- 					</p> -->
 
 				<p>
@@ -883,20 +883,20 @@ class Simba_Two_Factor_Authentication {
 						}
 					?>
 				</p>
-				
-			
 
-			
+
+
+
 
 			<?php
 				if ($admin || apply_filters('simba_tfa_emergency_codes_user_settings', false, $user_id) !== false) {
 			?>
-			
+
 
 				<div style="min-height: 100px;">
 				<h3 class="normal" style="cursor: default"><?php _e('Emergency codes', 'two-factor-authentication'); ?></h3>
 
-					
+
 						<?php
 							$default_text = '<a href="https://www.simbahosting.co.uk/s3/product/two-factor-authentication/">'.__('One-time emergency codes are a feature of the Premium version of this plugin.', 'two-factor-authentication').'</a>';
 							echo apply_filters('simba_tfa_emergency_codes_user_settings', $default_text, $user_id);
@@ -944,10 +944,43 @@ class Simba_Two_Factor_Authentication {
 					print '<br>'.__('Your counter on the server is currently on', 'two-factor-authentication').': '.$counter;
 				}
 			?>
-			
+
 			</p>
 			<?php if (false === $submit_button_callback) { submit_button(); echo '</form>'; } else { call_user_func($submit_button_callback); } ?>
 
+		</div>
+		<?php
+	}
+
+	/**
+	 * Print out the advanced settings box
+	 *
+	 * @param Boolean|Callable $submit_button_callback - if not a callback, then <form> tags will be added
+	 */
+	public function get_private_key($submit_button_callback = false) {
+		global $current_user;
+
+		?>
+		<!-- <h2 style="clear:both;"><?php //_e('Advanced settings', 'two-factor-authentication'); ?></h2> -->
+		<h2 style="clear:both;">Get user private key</h2>
+
+		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
+
+			<!-- Password field -->
+			<input type="password" value="<?php echo get_user_meta($current_user->ID, 'tfa_priv_key_64', true); ?>" style="width: 300px" id="myInput"><br>
+
+			<!-- An element to toggle between password visibility -->
+			<div style="margin-top: 10px">
+				<input type="checkbox" id="jsaklsfjakl">Show private key
+			</div>
+
+			<script>
+				jQuery("#jsaklsfjakl").change(function() {
+					if (this.checked) jQuery('#myInput')[0].type = 'text';
+					else jQuery('#myInput')[0].type = 'password'
+				});
+			</script>
+			</p>
 		</div>
 		<?php
 	}
@@ -960,17 +993,17 @@ class Simba_Two_Factor_Authentication {
 	if (isset($_GET['action']) && 'logout ' != $_GET['action'] && 'login' != $_GET['action']) return;
 
 		static $already_done = false;
-		
+
 		if ($already_done) return;
 
 		// Prevent cacheing when in debug mode
 		$script_ver = (defined('WP_DEBUG') && WP_DEBUG) ? time() : $this->version;
 
 		wp_enqueue_script('tfa-ajax-request', SIMBA_TFA_PLUGIN_URL.'/includes/tfa.js', array('jquery'), $script_ver);
-		
+
 		$trusted_for = $this->get_option('tfa_trusted_for');
 		$trusted_for = (false === $trusted_for) ? 30 : (string) absint($trusted_for);
-		
+
 		$localize = array(
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'click_to_enter_otp' => __("Click to enter One Time Password", 'two-factor-authentication'),
@@ -981,16 +1014,16 @@ class Simba_Two_Factor_Authentication {
 			'is_trusted' => __('(Trusted device)', 'two-factor-authentication'),
 			'nonce' => wp_create_nonce("simba_tfa_loginform_nonce")
 		);
-		
+
 		// Spinner exists since WC 3.8. Use the proper functions to avoid SSL warnings.
 		if (file_exists(ABSPATH.'wp-admin/images/spinner-2x.gif')) {
 			$localize['spinnerimg'] = admin_url('images/spinner-2x.gif');
 		} elseif (file_exists(ABSPATH.WPINC.'/images/spinner-2x.gif')) {
 			$localize['spinnerimg'] = includes_url('images/spinner-2x.gif');
 		}
-		
+
 		wp_localize_script('tfa-ajax-request', 'simba_tfasettings', $localize);
-		
+
 		$already_done = true;
 	}
 
@@ -999,7 +1032,7 @@ class Simba_Two_Factor_Authentication {
 		$is_off_sync = get_user_meta($current_user->ID, 'tfa_hotp_off_sync', true);
 		if(!$is_off_sync)
 			return;
-		
+
 		?>
 		<div class="error">
 			<h3><?php _e('Two Factor Authentication re-sync needed', 'two-factor-authentication');?></h3>
@@ -1011,23 +1044,23 @@ class Simba_Two_Factor_Authentication {
 				<a href="<?php echo wp_nonce_url('admin.php?page=two-factor-auth-user&warning_button_clicked=1', 'tfaresync', 'resyncnonce'); ?>" class="button"><?php _e('Click here and re-scan the QR-Code', 'two-factor-authentication');?></a>
 			</p>
 		</div>
-		
+
 		<?php
-		
+
 	}
 
 	// QR code image
 	public function tfa_qr_code_url($algorithm_type, $url, $tfa_priv_key, $user_id = false) {
 		global $current_user;
-		
+
 		if ($user_id == false) {
 			$user = $current_user;
 		} else {
 			$user = get_user_by('id', $user_id);
 		}
-		
+
 		$tfa = $this->getTFA();
-		
+
 		// Old way was to get it via an image from https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.$encode.'"> . But of course, that's a slight privacy leak (Google could get your private key from their logs).
 
 		$encode = 'otpauth://'.$algorithm_type.'/'.$url.':'.rawurlencode($user->user_login).'?secret='.Base32::encode($tfa_priv_key).'&issuer='.$url.'&counter='.$tfa->getUserCounter($user->ID);
@@ -1039,9 +1072,9 @@ class Simba_Two_Factor_Authentication {
 		?>
 		<p class="simba_tfa_personal_settings_notice simba_tfa_intro_notice">
 			<?php
-			
+
 				echo __('These are your personal settings.', 'two-factor-authentication').' '.__('Nothing you change here will have any effect on other users.', 'two-factor-authentication');
-			
+
 				if (is_multisite()) {
 					if (is_super_admin()) {
 						// Since WP 4.9
@@ -1050,10 +1083,10 @@ class Simba_Two_Factor_Authentication {
 						echo ' <a href="'.admin_url('options-general.php?page=two-factor-auth').'">'.__('The site-wide administration options are here.', 'two-factor-authentication').'</a>';
 						if ($switched) restore_current_blog();
 					}
-				} elseif (current_user_can($this->get_management_capability())) { 
+				} elseif (current_user_can($this->get_management_capability())) {
 					echo ' <a href="'.admin_url('options-general.php?page=two-factor-auth').'">'.__('The site-wide administration options are here.', 'two-factor-authentication').'</a>';
 				}
-			
+
 			?>
 		</p>
 		<p class="simba_tfa_verify_tfa_notice simba_tfa_intro_notice"><strong>
@@ -1092,12 +1125,12 @@ class Simba_Two_Factor_Authentication {
 	public function affwp_login_fields_before() {
 		$this->before_login_form_generic();
 	}
-	
+
 	public function affwp_process_login_form() {
 		if (!function_exists('affiliate_wp')) return;
 		$affiliate_wp = affiliate_wp();
 		$login = $affiliate_wp->login;
-		
+
 		$tfa = $this->getTFA();
 		$params = array(
 			'log' => (string)$_POST['affwp_user_login'],
@@ -1105,31 +1138,31 @@ class Simba_Two_Factor_Authentication {
 			'two_factor_code' => (string)$_POST['two_factor_code']
 		);
 		$code_ok = $tfa->authUserFromLogin($params, true);
-		
+
 		$code_ok = apply_filters('simbatfa_affwp_process_login_form_auth_result', $code_ok, $params);
-		
+
 		if (is_wp_error($code_ok)) {
 			$login->add_error($code_ok->get_error_code, $code_ok->get_error_message());
 		} elseif (!$code_ok) {
 			$login->add_error('authentication_failed', __('Error:', 'two-factor-authentication').' '.__('The one-time password (TFA code) you entered was incorrect.', 'two-factor-authentication'));
 		}
-		
+
 	}
-	
+
 	// Shared by some 3rd-party login forms
 	// For historical reasons there are references to WooCommerce in this code - left for the sake of not fixing what was not broken
 	private function before_login_form_generic() {
-	
+
 		static $already_included = false;
 		if ($already_included) return;
 		$already_included = true;
-	
+
 		$script_ver = (defined('WP_DEBUG') && WP_DEBUG) ? time() : $this->version;
 		wp_enqueue_script( 'tfa-wc-ajax-request', SIMBA_TFA_PLUGIN_URL.'/includes/wooextend.js', array('jquery'), $script_ver);
 
 		$trusted_for = $this->get_option('tfa_trusted_for');
 		$trusted_for = (false === $trusted_for) ? 30 : (string) absint($trusted_for);
-		
+
 		$localize = array(
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			'click_to_enter_otp' => __("Enter One Time Password (if you have one)", 'two-factor-authentication'),
@@ -1149,12 +1182,12 @@ class Simba_Two_Factor_Authentication {
 
 		wp_localize_script( 'tfa-wc-ajax-request', 'simbatfa_wc_settings', apply_filters('simba_tfa_localisation_strings', $localize, $this));
 	}
-	
+
 	// WooCommerce login form
 	public function woocommerce_before_customer_login_form() {
 		$this->before_login_form_generic();
 	}
-	
+
 	// Catch TML login widgets (other TML login forms already trigger)
 	public function tml_display($whatever) {
 		$this->login_enqueue_scripts();

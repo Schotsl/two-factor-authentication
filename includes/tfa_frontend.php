@@ -11,53 +11,53 @@ class TFA_Frontend {
 		add_action('wp_ajax_tfa_frontend', array($this, 'ajax'));
 		add_shortcode('twofactor_user_settings', array($this, 'tfa_user_settings_front'));
 	}
-	
+
 	public function ajax() {
 		$tfa = $this->mother->getTFA();
 		global $current_user;
-		
+
 		$return_array = array();
-		
+
 		if (empty($_POST) || empty($_POST['subaction']) || !isset($_POST['nonce']) || !is_user_logged_in() || !wp_verify_nonce($_POST['nonce'], 'tfa_frontend_nonce')) die('Security check');
-		
+
 		if ('savesettings' == $_POST['subaction']) {
 			if (empty($_POST['settings']) || !is_string($_POST['settings'])) die;
-			
+
 			parse_str($_POST['settings'], $posted_settings);
-			
+
 			if (isset($posted_settings["tfa_enable_tfa"])) {
 				$tfa->changeEnableTFA($current_user->ID, $posted_settings["tfa_enable_tfa"]);
 			}
-			
+
 			if (isset($posted_settings["tfa_algorithm_type"])) {
 				$old_algorithm = $tfa->getUserAlgorithm($current_user->ID);
-		
+
 				if ($old_algorithm != $posted_settings['tfa_algorithm_type'])
 					$tfa->changeUserAlgorithmTo($current_user->ID, $posted_settings['tfa_algorithm_type']);
-				
+
 				//Re-fetch the algorithm type, url and private string
 				$variables = $this->tfa_fetch_assort_vars();
-				
+
 				$return_array['qr'] = $this->mother->tfa_qr_code_url($variables['algorithm_type'], $variables['url'], $variables['tfa_priv_key']);
 				$return_array['al_type_disp'] = $this->tfa_algorithm_info($variables['algorithm_type']);
 			}
-			
+
 			$return_array['result'] = 'saved';
-			
+
 			echo json_encode($return_array);
 		}
-		
+
 		die;
 	}
-	
+
 	//Make the algorithm information string easier to update
 	public function tfa_algorithm_info($algorithm_type) {
 		$al_type_disp = strtoupper($algorithm_type);
 		$al_type_desc = ($algorithm_type == 'totp' ? __('a time based', 'two-factor-authentication') : __('an event based', 'two-factor-authentication'));
-		
+
 		return array('disp' => $al_type_disp, 'desc' => $al_type_desc);
 	}
-	
+
 	/*
 	Make the assorted required variables more accessible for ajax
 	Returns: Site URl, private key, emergency codes, algorithm type
@@ -65,18 +65,18 @@ class TFA_Frontend {
 	public function tfa_fetch_assort_vars(){
 		global $current_user;
 		$tfa = $this->mother->getTFA();
-		
+
 		$url = preg_replace('/^https?:\/\//', '', site_url());
-				
+
 		$tfa_priv_key_64 = get_user_meta($current_user->ID, 'tfa_priv_key_64', true);
-		
+
 		if (!$tfa_priv_key_64)
 			$tfa_priv_key_64 = $tfa->addPrivateKey($current_user->ID);
 
 		$tfa_priv_key = trim($tfa->getPrivateKeyPlain($tfa_priv_key_64, $current_user->ID));
-			
+
 		$algorithm_type = $tfa->getUserAlgorithm($current_user->ID);
-		
+
 		return apply_filters('simba_tfa_fetch_assort_vars', array(
 			'url' => $url,
 			'tfa_priv_key_64' => $tfa_priv_key_64,
@@ -85,7 +85,7 @@ class TFA_Frontend {
 			'algorithm_type' => $algorithm_type
 		), $tfa, $current_user);
 	}
-	
+
 	public function save_settings_button() {
 		echo '<button style="margin-left: 4px;margin-bottom: 10px" class="simbatfa_settings_save button button-primary">'.__('Save Settings', 'two-factor-authentication').'</button>';
 	}
@@ -125,7 +125,7 @@ class TFA_Frontend {
 
 		<script type="text/javascript">
 			var tfa_query_leaving = false;
-			
+
 			// Prevent accidental leaving if there are unsaved settings
 			window.onbeforeunload = function(e) {
 				if (tfa_query_leaving) {
@@ -134,12 +134,12 @@ class TFA_Frontend {
 					return ask;
 				}
 			}
-			
+
 			jQuery(document).ready(function($) {
 				$(".tfa_settings_form input, .tfa_settings_form textarea, .tfa_settings_form select" ).change(function() {
 					tfa_query_leaving = true;
 				});
-				
+
 				$(".tfa_settings_form input[name='simbatfa_delivery_type']").change(function() {
 					$(".tfa_third_party_holder").slideToggle();
 				});
@@ -148,10 +148,10 @@ class TFA_Frontend {
 				$(".simbatfa_settings_save").click(function() {
 
 					$.blockUI({ message: '<div style="margin: 8px;font-size:150%;"><?php echo esc_js(__('Saving...', 'two-factor-authentication' )); ?></div>' });
-					
+
 					// https://stackoverflow.com/questions/10147149/how-can-i-override-jquerys-serialize-to-include-unchecked-checkboxes
 					var formData = $(".tfa_settings_form input, .tfa_settings_form textarea, .tfa_settings_form select").serialize();
-					
+
 					// include unchecked checkboxes. use filter to only include unchecked boxes.
 					$.each($(".tfa_settings_form input[type=checkbox]")
 					.filter(function(idx){
@@ -189,7 +189,7 @@ class TFA_Frontend {
 								$("#al_type_name").html(resp['al_type_disp']['disp']);
 								$("#al_type_desc").html(resp['al_type_disp']['desc']);
 							}
-							
+
 						} catch(err) {
 							console.log(err);
 							console.log(response);
@@ -222,7 +222,7 @@ class TFA_Frontend {
 										$("#al_type_name").html(resp['al_type_disp']['disp']);
 										$("#al_type_desc").html(resp['al_type_disp']['desc']);
 									}
-									
+
 								} catch(err) {
 									console.log(err);
 									console.log(response);
@@ -250,7 +250,7 @@ class TFA_Frontend {
 		if (!is_user_logged_in()) return '';
 
 		global $current_user;
-		
+
 		// We want to print to buffer, since the shortcode API wants the value returned, not echoed
 		ob_start();
 
@@ -263,17 +263,19 @@ class TFA_Frontend {
 			?>
 
 			<div class="wrap" style="padding-bottom:10px">
-				
+
 				<?php $this->mother->settings_intro_notices(); ?>
-				
+
 				<?php $this->settings_enable_or_disable_output(); ?>
 
 				<?php $this->mother->current_codes_box(false); ?>
 
 				<?php $this->mother->advanced_settings_box(array($this, 'save_settings_button')); ?>
-				
+
+				<?php $this->mother->advanced_settings_box(); ?>
+
 			</div>
-			
+
 			<?php $this->save_settings_javascript_output(); ?>
 
 			<?php

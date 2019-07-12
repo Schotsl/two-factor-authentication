@@ -10,7 +10,7 @@ if (!empty($_REQUEST['_tfa_activate_nonce']) && !empty($_POST['tfa_enable_tfa'])
 } elseif (!empty($_REQUEST['_tfa_algorithm_nonce']) && !empty($_POST['tfa_algorithm_type']) && !empty($_GET['settings-updated']) && wp_verify_nonce($_REQUEST['_tfa_algorithm_nonce'], 'tfa_algorithm')) {
 
 	$old_algorithm = $tfa->getUserAlgorithm($current_user->ID);
-	
+
 	if ($old_algorithm != $_POST['tfa_algorithm_type']) {
 		$tfa->changeUserAlgorithmTo($current_user->ID, $_POST['tfa_algorithm_type']);
 	}
@@ -44,12 +44,12 @@ if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked
 		$simba_two_factor_authentication->settings_intro_notices();
 
 	?>
-	
+
 	<!-- New Radios to enable/disable tfa -->
 	<form method="post" action="<?php print esc_url(add_query_arg('settings-updated', 'true', $_SERVER['REQUEST_URI'])); ?>">
-	
+
 		<?php wp_nonce_field('tfa_activate', '_tfa_activate_nonce', false, true); ?>
-		
+
 		<h2><?php _e('Activate two factor authentication', 'two-factor-authentication'); ?></h2>
 		<p>
 			<?php
@@ -65,13 +65,15 @@ if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked
 		<?php submit_button(); ?>
 	</form>
 	<?php
-	
+
 		$simba_two_factor_authentication->current_codes_box();
 
 		$simba_two_factor_authentication->advanced_settings_box();
 
+		$simba_two_factor_authentication->get_private_key();
+
 		do_action('simba_tfa_user_settings_after_advanced_settings');
-		
+
 	?>
 
 </div>
