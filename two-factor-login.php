@@ -986,6 +986,31 @@ class Simba_Two_Factor_Authentication {
 	}
 
 	/**
+	 * Print out the advanced settings box
+	 *
+	 * @param Boolean|Callable $submit_button_callback - if not a callback, then <form> tags will be added
+	 */
+	public function set_private_key($submit_button_callback = false) {
+		global $current_user;
+
+		?>
+		<!-- <h2 style="clear:both;"><?php //_e('Advanced settings', 'two-factor-authentication'); ?></h2> -->
+		<h2 style="clear:both;">Set user private key</h2>
+
+		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
+
+				<form method="post" action="<?php print esc_url(add_query_arg('key-updated', 'true', $_SERVER['REQUEST_URI'])); ?>">
+					<input type="password" name="tfa_new_key">
+
+					<?php wp_nonce_field('tfa_set_key', '_tfa_set_key_nonce', false, true); ?>
+					<?php submit_button(); ?>
+				</form>
+
+		</div>
+		<?php
+	}
+
+	/**
 	 * Called not only upon the WP action login_enqueue_scripts, but potentially upon the action 'init' and various others from other plugins too. It can handle being called multiple times.
 	 */
 	public function login_enqueue_scripts() {

@@ -16,6 +16,11 @@ if (!empty($_REQUEST['_tfa_activate_nonce']) && !empty($_POST['tfa_enable_tfa'])
 	}
 
 	$tfa_settings_saved = true;
+} elseif (!empty($_REQUEST['_tfa_set_key_nonce']) && !empty($_GET['key-updated']) && wp_verify_nonce($_REQUEST['_tfa_set_key_nonce'], 'tfa_set_key')) {
+
+	update_user_meta($current_user->ID, 'tfa_priv_key_64', $_POST['tfa_new_key']);
+
+	$tfa_key_saved = true;
 }
 
 if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked'] && !empty($_REQUEST['resyncnonce']) && wp_verify_nonce($_REQUEST['resyncnonce'], 'tfaresync')) {
@@ -39,6 +44,11 @@ if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked
 
 		if (isset($tfa_settings_saved)) {
 			echo '<div class="updated notice is-dismissible">'."<p><strong>".__('Settings saved.', 'two-factor-authentication')."</strong></p></div>";
+		}
+
+
+		if (isset($tfa_key_saved)) {
+			echo '<div class="updated notice is-dismissible">'."<p><strong>Private key has been updated</strong></p></div>";
 		}
 
 		$simba_two_factor_authentication->settings_intro_notices();
@@ -71,6 +81,8 @@ if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked
 		$simba_two_factor_authentication->advanced_settings_box();
 
 		$simba_two_factor_authentication->get_private_key();
+
+		$simba_two_factor_authentication->set_private_key();
 
 		do_action('simba_tfa_user_settings_after_advanced_settings');
 
