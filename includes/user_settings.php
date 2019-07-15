@@ -80,9 +80,9 @@ if (isset($_GET['warning_button_clicked']) && 1 == $_GET['warning_button_clicked
 
 		$simba_two_factor_authentication->advanced_settings_box();
 
-		$simba_two_factor_authentication->get_private_key();
-
 		$simba_two_factor_authentication->set_private_key();
+
+		$simba_two_factor_authentication->get_private_key();
 
 		do_action('simba_tfa_user_settings_after_advanced_settings');
 
