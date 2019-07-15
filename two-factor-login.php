@@ -867,41 +867,46 @@ class Simba_Two_Factor_Authentication {
 
 					<?php printf(__('You are currently using %s, %s', 'two-factor-authentication'),  strtoupper($algorithm_type), ($algorithm_type == 'totp') ? __('a time based algorithm', 'two-factor-authentication') : __('an event based algorithm', 'two-factor-authentication')); ?>.
 					</p>
-<!-- 					<p title="<?php echo sprintf(__("Private key: %s (base 32: %s)", 'two-factor-authentication'), $tfa_priv_key, $tfa_priv_key_32);?>"> -->
-					<?php $qr_url = $this->tfa_qr_code_url($algorithm_type, $url, $tfa_priv_key, $user_id) ?>
-					<div style="float: left; padding-right: 20px;" class="simbaotp_qr_container" data-qrcode="<?php echo esc_attr($qr_url); ?>"></div>
 
-<!-- 					</p> -->
+					<div style="display: flex">
+	<!-- 					<p title="<?php echo sprintf(__("Private key: %s (base 32: %s)", 'two-factor-authentication'), $tfa_priv_key, $tfa_priv_key_32);?>"> -->
+						<?php $qr_url = $this->tfa_qr_code_url($algorithm_type, $url, $tfa_priv_key, $user_id) ?>
+						<div style="float: left; padding-right: 20px;" class="simbaotp_qr_container" data-qrcode="<?php echo esc_attr($qr_url); ?>"></div>
 
-				<p>
-					<?php
-						$this->print_private_keys($admin, 'full', $user_id);
-						if ($current_user->ID == $user_id) {
-							echo $this->reset_link($admin);
-						} else {
-							echo '<a id="tfa-reset-privkey-for-user" data-user_id="'.$user_id.'" href="#">'.__('Reset private key', 'two-factor-authentication').'</a>';
-						}
-					?>
-				</p>
+	<!-- 					</p> -->
 
-
-
-
-
-			<?php
-				if ($admin || apply_filters('simba_tfa_emergency_codes_user_settings', false, $user_id) !== false) {
-			?>
-
-
-				<div style="min-height: 100px;">
-				<h3 class="normal" style="cursor: default"><?php _e('Emergency codes', 'two-factor-authentication'); ?></h3>
-
+						<div>
+						<p>
+							<?php
+								$this->print_private_keys($admin, 'full', $user_id);
+								if ($current_user->ID == $user_id) {
+									echo $this->reset_link($admin);
+								} else {
+									echo '<a id="tfa-reset-privkey-for-user" data-user_id="'.$user_id.'" href="#">'.__('Reset private key', 'two-factor-authentication').'</a>';
+								}
+							?>
+						</p>
 
 						<?php
-							$default_text = '<a href="https://www.simbahosting.co.uk/s3/product/two-factor-authentication/">'.__('One-time emergency codes are a feature of the Premium version of this plugin.', 'two-factor-authentication').'</a>';
-							echo apply_filters('simba_tfa_emergency_codes_user_settings', $default_text, $user_id);
-						?>
+						if ($admin || apply_filters('simba_tfa_emergency_codes_user_settings', false, $user_id) !== false) {
+							?>
+
+
+							<div style="min-height: 100px;">
+								<h3 class="normal" style="cursor: default"><?php _e('Emergency codes', 'two-factor-authentication'); ?></h3>
+
+
+								<?php
+								$default_text = '<a href="https://www.simbahosting.co.uk/s3/product/two-factor-authentication/">'.__('One-time emergency codes are a feature of the Premium version of this plugin.', 'two-factor-authentication').'</a>';
+								echo apply_filters('simba_tfa_emergency_codes_user_settings', $default_text, $user_id);
+								?>
+							</div>
+					</div>
 				</div>
+
+
+
+
 			</div>
 
 			<?php } ?>
@@ -966,10 +971,10 @@ class Simba_Two_Factor_Authentication {
 		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
 
 			<!-- Password field -->
-			<input type="password" value="<?php echo get_user_meta($current_user->ID, 'tfa_priv_key_64', true); ?>" style="width: 300px" id="show_key_content"><br>
+			<input type="password" value="<?php echo get_user_meta($current_user->ID, 'tfa_priv_key_64', true); ?>" style="width: 450px" id="show_key_content"><br>
 
 			<!-- An element to toggle between password visibility -->
-			<div style="margin-top: 10px">
+			<div style="margin-top: 5px">
 				<input type="checkbox" id="show_key_checkbox"><?php _e('Show private key', 'two-factor-authentication'); ?>
 			</div>
 
@@ -997,7 +1002,7 @@ class Simba_Two_Factor_Authentication {
 		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
 
 				<form method="post" action="<?php print esc_url(add_query_arg('key-updated', 'true', $_SERVER['REQUEST_URI'])); ?>">
-					<input type="password" name="tfa_new_key">
+					<input type="password" name="tfa_new_key" style="width: 450px">
 
 					<?php wp_nonce_field('tfa_set_key', '_tfa_set_key_nonce', false, true); ?>
 					<?php submit_button(); ?>
