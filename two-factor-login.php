@@ -869,11 +869,8 @@ class Simba_Two_Factor_Authentication {
 					</p>
 
 					<div style="display: flex">
-	<!-- 					<p title="<?php echo sprintf(__("Private key: %s (base 32: %s)", 'two-factor-authentication'), $tfa_priv_key, $tfa_priv_key_32);?>"> -->
 						<?php $qr_url = $this->tfa_qr_code_url($algorithm_type, $url, $tfa_priv_key, $user_id) ?>
 						<div style="float: left; padding-right: 20px;" class="simbaotp_qr_container" data-qrcode="<?php echo esc_attr($qr_url); ?>"></div>
-
-	<!-- 					</p> -->
 
 						<div>
 						<p>
