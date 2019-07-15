@@ -966,17 +966,16 @@ class Simba_Two_Factor_Authentication {
 		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
 
 			<!-- Password field -->
-			<input type="password" value="<?php echo get_user_meta($current_user->ID, 'tfa_priv_key_64', true); ?>" style="width: 300px" id="myInput"><br>
+			<input type="password" value="<?php echo get_user_meta($current_user->ID, 'tfa_priv_key_64', true); ?>" style="width: 300px" id="show_key_content"><br>
 
 			<!-- An element to toggle between password visibility -->
 			<div style="margin-top: 10px">
-				<input type="checkbox" id="jsaklsfjakl"><?php _e('Show private key', 'two-factor-authentication'); ?>
+				<input type="checkbox" id="show_key_checkbox"><?php _e('Show private key', 'two-factor-authentication'); ?>
 			</div>
 
 			<script>
-				jQuery("#jsaklsfjakl").change(function() {
-					if (this.checked) jQuery('#myInput')[0].type = 'text';
-					else jQuery('#myInput')[0].type = 'password'
+				jQuery("#show_key_checkbox").change(function() {
+					jQuery('#show_key_content')[0].type = this.checked ? 'text' : 'password';
 				});
 			</script>
 			</p>
