@@ -448,3 +448,15 @@ msgid "(check your email or OTP-app to get this password)"
 msgstr ""
 "(consulte su correo electrónico o aplicación OTP para obtener esta "
 "contraseña)"
+
+#: two-factor-login.php:964
+msgid "Get private key"
+msgstr "Obtener clave privada"
+
+#: two-factor-login.php:996
+msgid "Set private key"
+msgstr "Establecer clave privada"
+
+#: two-factor-login.php:973
+msgid "Show private key"
+msgstr "Mostrar clave privada"

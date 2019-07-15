@@ -610,3 +610,15 @@ msgstr "Du bör uppdatera för att se till att du har en version som är kompati
 #: updater/class-udm-updater.php:240
 msgid "Your paid access to %s updates for this site has expired. You will no longer receive updates."
 msgstr "Din tillgång till betald %s uppdateringar för den här webbplatsen har löpt ut. Du kommer inte längre att få uppdateringar."
+
+#: two-factor-login.php:964
+msgid "Get private key"
+msgstr "Hämta privat nyckel"
+
+#: two-factor-login.php:996
+msgid "Set private key"
+msgstr "Ange privat nyckel"
+
+#: two-factor-login.php:973
+msgid "Show private key"
+msgstr "Visa privat nyckel"

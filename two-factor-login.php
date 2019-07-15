@@ -961,8 +961,7 @@ class Simba_Two_Factor_Authentication {
 		global $current_user;
 
 		?>
-		<!-- <h2 style="clear:both;"><?php //_e('Advanced settings', 'two-factor-authentication'); ?></h2> -->
-		<h2 style="clear:both;">Get user private key</h2>
+		<h2 style="clear:both;"><?php _e('Get private key', 'two-factor-authentication'); ?></h2>
 
 		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
 
@@ -971,7 +970,7 @@ class Simba_Two_Factor_Authentication {
 
 			<!-- An element to toggle between password visibility -->
 			<div style="margin-top: 10px">
-				<input type="checkbox" id="jsaklsfjakl">Show private key
+				<input type="checkbox" id="jsaklsfjakl"><?php _e('Show private key', 'two-factor-authentication'); ?>
 			</div>
 
 			<script>
@@ -994,8 +993,7 @@ class Simba_Two_Factor_Authentication {
 		global $current_user;
 
 		?>
-		<!-- <h2 style="clear:both;"><?php //_e('Advanced settings', 'two-factor-authentication'); ?></h2> -->
-		<h2 style="clear:both;">Set user private key</h2>
+		<h2 style="clear:both;"><?php _e('Set private key', 'two-factor-authentication'); ?></h2>
 
 		<div id="tfa_private_key_box" class="tfa_settings_form" style="margin-top: 20px;">
 

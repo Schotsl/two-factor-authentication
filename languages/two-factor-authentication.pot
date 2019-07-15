@@ -931,3 +931,11 @@ msgstr ""
 #: premium.php:654
 msgid "Your emergency codes are:"
 msgstr ""
+
+#: two-factor-login.php:964
+msgid "Get private key"
+msgstr ""
+
+#: two-factor-login.php:996
+msgid "Set private key"
+msgstr ""

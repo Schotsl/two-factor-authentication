@@ -453,3 +453,15 @@ msgstr "Premium-Version"
 #: includes/admin_settings.php:17
 msgid "Two Factor Authentication (Version: %s) - Admin Settings"
 msgstr "Two Factor Authentication (Version: %s) - Administrator-Einstellungen"
+
+#: two-factor-login.php:964
+msgid "Get private key"
+msgstr "Holen Sie sich einen privaten Schlüssel"
+
+#: two-factor-login.php:996
+msgid "Set private key"
+msgstr "Privaten Schlüssel festlegen"
+
+#: two-factor-login.php:973
+msgid "Show private key"
+msgstr "Privaten Schlüssel anzeigen"
